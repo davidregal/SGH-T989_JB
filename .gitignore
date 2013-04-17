@@ -80,7 +80,7 @@ GTAGS
 *.rej
 *~
 \#*#
-patch-
+patch-*
 
 /*.log
 /setup-*
