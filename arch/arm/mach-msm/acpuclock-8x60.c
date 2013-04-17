@@ -196,7 +196,7 @@ static struct clkctl_l2_speed l2_freq_tbl_v2[] = {
 	[17] = {1296000,  1, 0x18, 1200000, 1225000, 3},
 	[18] = {1350000,  1, 0x19, 1200000, 1225000, 3},
 	[19] = {1404000,  1, 0x1A, 1200000, 1250000, 3},
-        [20] = {1620000,  1, 0x1E, 1250000, 1275000, 4},
+    [20] = {1620000,  1, 0x1B, 1250000, 1275000, 4},
 };
 
 #define L2(x) (&l2_freq_tbl_v2[(x)])
@@ -876,7 +876,7 @@ static struct notifier_block __cpuinitdata acpuclock_cpu_notifier = {
 	.notifier_call = acpuclock_cpu_callback,
 };
 
-static __init struct clkctl_acpu_speed *select_freq_plan(void)
+static unsigned int __init select_freq_plan(void)
 {
 	uint32_t pte_efuse, speed_bin, pvs, max_khz;
 	struct clkctl_acpu_speed *f;
@@ -969,31 +969,3 @@ static int __init acpuclk_8x60_init(struct acpuclk_soc_data *soc_data)
 struct acpuclk_soc_data acpuclk_8x60_soc_data __initdata = {
 	.init = acpuclk_8x60_init,
 };
-
-#ifdef CONFIG_VDD_USERSPACE
-ssize_t acpuclk_get_vdd_levels_str(char *buf)
-{
-    int i, len = 0;
-    if (buf) {
-        mutex_lock(&drv_state.lock);
-        for (i = 0; acpu_freq_tbl[i].acpuclk_khz; i++) {
-            len += sprintf(buf + len, "%8u: %4d\n", acpu_freq_tbl[i].acpuclk_khz, acpu_freq_tbl[i].vdd_sc);
-        }
-        mutex_unlock(&drv_state.lock);
-    }
-    return len;
-}
-
-void acpuclk_set_vdd(unsigned int khz, int vdd)
-{
-    int i;
-    mutex_lock(&drv_state.lock);
-    for (i = 0; acpu_freq_tbl[i].acpuclk_khz; i++) {
-        if (khz == 0)
-            acpu_freq_tbl[i].vdd_sc = min(max((unsigned int)(acpu_freq_tbl[i].vdd_sc + vdd), (unsigned int)MIN_VDD_SC), (unsigned int)MAX_VDD_SC);
-        else if (acpu_freq_tbl[i].acpuclk_khz == khz)
-            acpu_freq_tbl[i].vdd_sc = min(max((unsigned int)vdd, (unsigned int)MIN_VDD_SC), (unsigned int)MAX_VDD_SC);
-    }
-    mutex_unlock(&drv_state.lock);
-}
-#endif
